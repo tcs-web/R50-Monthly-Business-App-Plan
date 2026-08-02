@@ -47,7 +47,6 @@
       <div><label>WhatsApp Number</label><input type="tel" id="bizWA" placeholder="083..."></div>
     </div>
 
-    <!-- SIGNATURE PADS ADDED HERE -->
     <h3>Digital Signatures</h3>
     <div class="sig-box">
       <label><b>TwinZ Representative Signature</b></label>
@@ -119,28 +118,25 @@ months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</opt
 monthSelect.value = new Date().getMonth();
 document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
 
-// FIXED SIGNATURE PAD LOGIC - now works on mobile and pencil is black
+// SIGNATURE PAD LOGIC
 function initSigPad(canvasId){
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
-  // Make canvas high-res for mobile
   const ratio = Math.max(window.devicePixelRatio || 1, 1);
   canvas.width = canvas.offsetWidth * ratio;
   canvas.height = canvas.offsetHeight * ratio;
   ctx.scale(ratio, ratio);
-  ctx.strokeStyle = '#000'; // BLACK PENCIL
+  ctx.strokeStyle = '#000';
   ctx.lineWidth = 3;
   ctx.lineCap = 'round';
 
   let drawing = false;
-
   function getPos(e){
     const rect = canvas.getBoundingClientRect();
     const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
     const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
     return {x,y}
   }
-
   function start(e){ e.preventDefault(); drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
   function move(e){ if(!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
   function stop(){ drawing = false; updatePreview(); }
@@ -171,7 +167,6 @@ function updatePreview(){
   let date = document.getElementById('signDate').value || new Date().toISOString().split('T')[0];
   document.getElementById('pSignDate').innerText = date;
   document.getElementById('pSignDate2').innerText = date;
-  // Update signature images in preview
   document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL();
   document.getElementById('imgClientSig').src = document.getElementById('sigClient').toDataURL();
 }
@@ -259,7 +254,7 @@ function generateInvoicePDF(){
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y); // FIXED
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -273,12 +268,12 @@ function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10; // FIXED HERE
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10; // FIXED HERE
+  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10; // FIXED
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " + year, 10, y); y+=10; // FIXED
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn); // FIXED HERE
+  alert("✅ Invoice for " + monthName + " + year + " Downloaded for " + bn); // FIXED
 }
 </script>
 </body>
