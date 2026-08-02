@@ -27,7 +27,7 @@
 <body>
 
 <div class="container">
-  <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" class="logo" alt="Twinz Logo" crossorigin="anonymous">
+  <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" class="logo" alt="Twinz Logo">
   <h1>TWINZ CORPORATE SERVICES PTY LTD</h1>
   <p style="text-align:center;color:#636e72">Contract + Monthly Invoice Generator - R50/month</p>
 
@@ -92,22 +92,9 @@ function updatePreview(){
 }
 document.querySelectorAll('input').forEach(i=>i.addEventListener('input', updatePreview));
 
-// ADDED: Function to get logo
-function getLogoDataURL(img) {
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  canvas.getContext('2d').drawImage(img, 0, 0);
-  return canvas.toDataURL('image/png');
-}
-
 function generateContractPDF(){
   const doc = new jsPDF(); let y = 15;
   const bn = document.getElementById('bizName').value || 'Client';
-  const logoImg = document.querySelector('.logo'); // ADDED
-
-  doc.addImage(getLogoDataURL(logoImg), 'PNG', 85, 8, 40, 18); // ADDED
-  y = 32; // ADDED - moved content down
 
   doc.setFontSize(16); doc.setFont(undefined, 'bold');
   doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align: "center"}); y+=10;
@@ -162,10 +149,6 @@ function generateInvoicePDF(){
   const monthName = months[monthIndex];
   const invoiceNo = 'TWINZ-' + year + '-' + (parseInt(monthIndex)+1).toString().padStart(2,'0') + '-' + bn.substring(0,3).toUpperCase();
   const invDate = new Date().toISOString().split('T')[0];
-  const logoImg = document.querySelector('.logo'); // ADDED
-
-  doc.addImage(getLogoDataURL(logoImg), 'PNG', 85, 8, 40, 18); // ADDED
-  y = 32; // ADDED - moved content down
 
   doc.setFontSize(18); doc.setFont(undefined, 'bold');
   doc.text("TAX INVOICE", 105, y, {align: "center"}); y+=10;
@@ -187,7 +170,7 @@ function generateInvoicePDF(){
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " " + year, 12, y);
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -201,12 +184,12 @@ function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10;
+  doc.text("Reference: " + bn + " " + monthName, 10, y); y+=10;
   doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-  alert("✅ Invoice for " + monthName + " + year + " Downloaded for " + bn);
+  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn);
 }
 </script>
 </body>
