@@ -27,7 +27,7 @@
 <body>
 
 <div class="container">
-  <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" class="logo" alt="Twinz Logo">
+  <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" class="logo" alt="Twinz Logo" crossorigin="anonymous">
   <h1>TWINZ CORPORATE SERVICES PTY LTD</h1>
   <p style="text-align:center;color:#636e72">Contract + Monthly Invoice Generator - R50/month</p>
 
@@ -46,14 +46,8 @@
 
     <h3>For Invoice Only</h3>
     <div class="grid">
-      <div>
-        <label>Invoice Month</label>
-        <select id="invMonth"></select>
-      </div>
-      <div>
-        <label>Invoice Year</label>
-        <input type="number" id="invYear" value="2026">
-      </div>
+      <div><label>Invoice Month</label><select id="invMonth"></select></div>
+      <div><label>Invoice Year</label><input type="number" id="invYear" value="2026"></div>
     </div>
     <label>Agreement Start Date</label><input type="date" id="startDate">
 
@@ -68,7 +62,6 @@
       <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" style="width:70px;margin-bottom:5px">
       <h2>TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT</h2>
     </div>
-    <!-- Preview content same as contract -->
     <p><b>Service Provider:</b><br><b>TWINZ CORPORATE SERVICES PTY LTD</b><br>📧 twinz.cooperate.services@gmail.com<br>📞 068 254 7352 | 069 894 9596<br>🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145</p>
     <p><b>Client:</b> <span id="pBizName">_____</span> | <b>Owner:</b> <span id="pOwnerName">_____</span></p>
     <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
@@ -84,7 +77,7 @@ const { jsPDF } = window.jspdf;
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const monthSelect = document.getElementById('invMonth');
 months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</option>` });
-monthSelect.value = new Date().getMonth(); // default to current month
+monthSelect.value = new Date().getMonth();
 
 function updatePreview(){
   document.getElementById('pBizName').innerText = document.getElementById('bizName').value || '_____';
@@ -94,12 +87,14 @@ document.querySelectorAll('input').forEach(i=>i.addEventListener('input', update
 
 // Helper to load logo
 async function getLogo() {
-  const img = document.querySelector('.logo');
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  canvas.getContext('2d').drawImage(img, 0, 0);
-  return canvas.toDataURL('image/png');
+  return new Promise((resolve) => {
+    const img = document.querySelector('.logo');
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    resolve(canvas.toDataURL('image/png'));
+  });
 }
 
 async function generateContractPDF(){
@@ -107,7 +102,7 @@ async function generateContractPDF(){
   const bn = document.getElementById('bizName').value || 'Client';
   const logo = await getLogo();
 
-  doc.addImage(logo, 'PNG', 85, 8, 40, 18); // logo on top
+  doc.addImage(logo, 'PNG', 85, 8, 40, 18);
   y = 32;
 
   doc.setFontSize(16); doc.setFont(undefined, 'bold');
@@ -165,7 +160,7 @@ async function generateInvoicePDF(){
   const invDate = new Date().toISOString().split('T')[0];
   const logo = await getLogo();
 
-  doc.addImage(logo, 'PNG', 85, 8, 40, 18); // logo on top
+  doc.addImage(logo, 'PNG', 85, 8, 40, 18);
   y = 32;
 
   doc.setFontSize(18); doc.setFont(undefined, 'bold');
@@ -203,7 +198,7 @@ async function generateInvoicePDF(){
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
   doc.text("Reference: " + bn + " " + monthName, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " + year, 10, y); y+=10;
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
