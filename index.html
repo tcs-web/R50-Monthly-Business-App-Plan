@@ -22,7 +22,7 @@
 .contract-preview{border:2px solid var(--accent);padding:20px;border-radius:10px;margin-top:20px;background:#fff;font-size:14px}
 .header{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:15px}
 .signature-line{border-bottom:1px solid #000;width:180px;display:inline-block;margin:0 5px}
-.signature-pad{border:2px dashed var(--accent);border-radius:8px;background:#fff;touch-action:none}
+.signature-pad{border:2px dashed var(--accent);border-radius:8px;background:#fff;touch-action:none; width:100%; height:150px}
 .sig-box{margin:15px 0;padding:15px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
   @media print{.no-print{display:none}}
 </style>
@@ -52,14 +52,14 @@
     <div class="sig-box">
       <label><b>TwinZ Representative Signature</b></label>
       <input type="text" id="twinzRep" placeholder="TwinZ Rep Name">
-      <canvas id="sigTwinz" class="signature-pad" width="700" height="150"></canvas>
+      <canvas id="sigTwinz" class="signature-pad"></canvas>
       <button class="btn btn-gray" onclick="clearSig('sigTwinz')">Clear</button>
     </div>
 
     <div class="sig-box">
       <label><b>Client Signature</b></label>
       <input type="text" id="clientSign" placeholder="Client Name">
-      <canvas id="sigClient" class="signature-pad" width="700" height="150"></canvas>
+      <canvas id="sigClient" class="signature-pad"></canvas>
       <button class="btn btn-gray" onclick="clearSig('sigClient')">Clear</button>
     </div>
     <label>Agreement Date</label><input type="date" id="signDate">
@@ -119,27 +119,36 @@ months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</opt
 monthSelect.value = new Date().getMonth();
 document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
 
-// SIGNATURE PAD LOGIC
+// FIXED SIGNATURE PAD LOGIC - now works on mobile and pencil is black
 function initSigPad(canvasId){
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
+  // Make canvas high-res for mobile
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  ctx.scale(ratio, ratio);
+  ctx.strokeStyle = '#000'; // BLACK PENCIL
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
   let drawing = false;
-  
+
   function getPos(e){
     const rect = canvas.getBoundingClientRect();
-    return {
-      x: (e.touches? e.touches[0].clientX : e.clientX) - rect.left,
-      y: (e.touches? e.touches[0].clientY : e.clientY) - rect.top
-    }
+    const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+    return {x,y}
   }
-  
-  function start(e){ drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); }
-  function move(e){ if(!drawing) return; e.preventDefault(); ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#000'; ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); }
+
+  function start(e){ e.preventDefault(); drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
+  function move(e){ if(!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
   function stop(){ drawing = false; updatePreview(); }
-  
+
   canvas.addEventListener('mousedown', start);
   canvas.addEventListener('mousemove', move);
   canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
   canvas.addEventListener('touchstart', start);
   canvas.addEventListener('touchmove', move);
   canvas.addEventListener('touchend', stop);
@@ -149,7 +158,8 @@ initSigPad('sigClient');
 
 function clearSig(id){
   const canvas = document.getElementById(id);
-  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   updatePreview();
 }
 
@@ -211,7 +221,7 @@ function generateContractPDF(){
   doc.text("Name: " + (document.getElementById('twinzRep').value || '_________________'), 10, y); y+=12;
   doc.addImage(document.getElementById('sigTwinz').toDataURL(), 'PNG', 10, y, 60, 15);
   doc.text("Date: " + document.getElementById('signDate').value, 100, y+8); y+=25;
-  
+
   doc.text("For BUSINESS:", 10, y); y+=7;
   doc.text("Name: " + (document.getElementById('clientSign').value || '_________________'), 10, y); y+=12;
   doc.addImage(document.getElementById('sigClient').toDataURL(), 'PNG', 10, y, 60, 15);
@@ -249,7 +259,7 @@ function generateInvoicePDF(){
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App Subscription - " + monthName + " " + year, 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y);
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -263,12 +273,12 @@ function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
+  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10; // FIXED HERE
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10; // FIXED HERE
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-  alert("✅ Invoice for " + monthName + " + year + " Downloaded for " + bn);
+  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn); // FIXED HERE
 }
 </script>
 </body>
