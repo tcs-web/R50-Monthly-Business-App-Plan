@@ -18,9 +18,12 @@
 .btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;font-size:15px}
 .btn-invoice{background:#00b894}
+.btn-gray{background:#636e72}
 .contract-preview{border:2px solid var(--accent);padding:20px;border-radius:10px;margin-top:20px;background:#fff;font-size:14px}
 .header{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:15px}
 .signature-line{border-bottom:1px solid #000;width:180px;display:inline-block;margin:0 5px}
+.signature-pad{border:2px dashed var(--accent);border-radius:8px;background:#fff;touch-action:none}
+.sig-box{margin:15px 0;padding:15px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
   @media print{.no-print{display:none}}
 </style>
 </head>
@@ -43,6 +46,23 @@
       <div><label>Contact Number</label><input type="tel" id="bizPhone" placeholder="083..."></div>
       <div><label>WhatsApp Number</label><input type="tel" id="bizWA" placeholder="083..."></div>
     </div>
+
+    <!-- SIGNATURE PADS ADDED HERE -->
+    <h3>Digital Signatures</h3>
+    <div class="sig-box">
+      <label><b>TwinZ Representative Signature</b></label>
+      <input type="text" id="twinzRep" placeholder="TwinZ Rep Name">
+      <canvas id="sigTwinz" class="signature-pad" width="700" height="150"></canvas>
+      <button class="btn btn-gray" onclick="clearSig('sigTwinz')">Clear</button>
+    </div>
+
+    <div class="sig-box">
+      <label><b>Client Signature</b></label>
+      <input type="text" id="clientSign" placeholder="Client Name">
+      <canvas id="sigClient" class="signature-pad" width="700" height="150"></canvas>
+      <button class="btn btn-gray" onclick="clearSig('sigClient')">Clear</button>
+    </div>
+    <label>Agreement Date</label><input type="date" id="signDate">
 
     <h3>For Invoice Only</h3>
     <div class="grid">
@@ -68,21 +88,23 @@
       <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" style="width:70px;margin-bottom:5px">
       <h2>TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT</h2>
     </div>
-    <!-- Preview content same as contract -->
     <p><b>Service Provider:</b><br><b>TWINZ CORPORATE SERVICES PTY LTD</b><br>📧 twinz.cooperate.services@gmail.com<br>📞 068 254 7352 | 069 894 9596<br>🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145</p>
     <p><b>Client:</b> <span id="pBizName">_____</span> | <b>Owner:</b> <span id="pOwnerName">_____</span></p>
     <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
     <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4. Due 1st of every month.</p>
     <p><b>3. TERM:</b> Month-to-month. 30 days notice via WhatsApp 068 254 7352.</p>
 
-    <!-- ADDED SIGNATURES SECTION HERE -->
     <div style="margin-top:20px">
       <p><b>5. SIGNATURES</b></p>
       <p><b>For TWINZ CORPORATE SERVICES:</b></p>
-      <p>Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span></p>
+      <p>Name: <span id="pTwinzRep" class="signature-line"></span></p>
+      <img id="imgTwinzSig" style="width:200px;height:60px;border-bottom:1px solid #000">
+      <p>Date: <span id="pSignDate" class="signature-line"></span></p>
       <br>
       <p><b>For BUSINESS:</b></p>
-      <p>Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span></p>
+      <p>Name: <span id="pClientSign" class="signature-line"></span></p>
+      <img id="imgClientSig" style="width:200px;height:60px;border-bottom:1px solid #000">
+      <p>Date: <span id="pSignDate2" class="signature-line"></span></p>
     </div>
   </div>
 </div>
@@ -94,11 +116,54 @@ const { jsPDF } = window.jspdf;
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const monthSelect = document.getElementById('invMonth');
 months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</option>` });
-monthSelect.value = new Date().getMonth(); // default to current month
+monthSelect.value = new Date().getMonth();
+document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
+
+// SIGNATURE PAD LOGIC
+function initSigPad(canvasId){
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.touches? e.touches[0].clientX : e.clientX) - rect.left,
+      y: (e.touches? e.touches[0].clientY : e.clientY) - rect.top
+    }
+  }
+  
+  function start(e){ drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); }
+  function move(e){ if(!drawing) return; e.preventDefault(); ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#000'; ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); }
+  function stop(){ drawing = false; updatePreview(); }
+  
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('touchstart', start);
+  canvas.addEventListener('touchmove', move);
+  canvas.addEventListener('touchend', stop);
+}
+initSigPad('sigTwinz');
+initSigPad('sigClient');
+
+function clearSig(id){
+  const canvas = document.getElementById(id);
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  updatePreview();
+}
 
 function updatePreview(){
   document.getElementById('pBizName').innerText = document.getElementById('bizName').value || '_____';
   document.getElementById('pOwnerName').innerText = document.getElementById('ownerName').value || '_____';
+  document.getElementById('pTwinzRep').innerText = document.getElementById('twinzRep').value || '_____';
+  document.getElementById('pClientSign').innerText = document.getElementById('clientSign').value || '_____';
+  let date = document.getElementById('signDate').value || new Date().toISOString().split('T')[0];
+  document.getElementById('pSignDate').innerText = date;
+  document.getElementById('pSignDate2').innerText = date;
+  // Update signature images in preview
+  document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL();
+  document.getElementById('imgClientSig').src = document.getElementById('sigClient').toDataURL();
 }
 document.querySelectorAll('input').forEach(i=>i.addEventListener('input', updatePreview));
 
@@ -142,10 +207,15 @@ function generateContractPDF(){
   doc.text("- Support via WhatsApp: 068 254 7352 / 069 894 9596", 10, y); y+=15;
 
   doc.setFont(undefined, 'bold'); doc.text("5. SIGNATURES", 10, y); y+=12;
-  doc.text("For TWINZ CORPORATE SERVICES:", 10, y); y+=10;
-  doc.text("Name: ________________________ Signature: __________________ Date: __________", 10, y); y+=15;
-  doc.text("For BUSINESS:", 10, y); y+=10;
-  doc.text("Name: ________________________ Signature: __________________ Date: __________", 10, y);
+  doc.text("For TWINZ CORPORATE SERVICES:", 10, y); y+=7;
+  doc.text("Name: " + (document.getElementById('twinzRep').value || '_________________'), 10, y); y+=12;
+  doc.addImage(document.getElementById('sigTwinz').toDataURL(), 'PNG', 10, y, 60, 15);
+  doc.text("Date: " + document.getElementById('signDate').value, 100, y+8); y+=25;
+  
+  doc.text("For BUSINESS:", 10, y); y+=7;
+  doc.text("Name: " + (document.getElementById('clientSign').value || '_________________'), 10, y); y+=12;
+  doc.addImage(document.getElementById('sigClient').toDataURL(), 'PNG', 10, y, 60, 15);
+  doc.text("Date: " + document.getElementById('signDate').value, 100, y+8);
 
   doc.save(bn + "-TwinZ-Contract.pdf");
   alert("✅ Contract PDF Downloaded for " + bn);
@@ -175,12 +245,11 @@ function generateInvoicePDF(){
   doc.text("Cell: 068 254 7352 | 069 894 9596", 10, y);
   doc.text(document.getElementById('bizAddress').value, 110, y); y+=12;
 
-  // Table
   doc.setFillColor(139, 0, 0); doc.rect(10, y, 190, 8, 'F');
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " " + year, 12, y);
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -195,7 +264,7 @@ function generateInvoicePDF(){
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
   doc.text("Reference: " + bn + " + monthName, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " + year, 10, y); y+=10;
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
