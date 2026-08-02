@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TWINZ CONTRACT + INVOICE GENERATOR</title>
+<title>TWINZ CONTRACT + MONTHLY INVOICE GENERATOR</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{--accent:#8B0000;--bg:#f5f5f5}
   body{font-family:'Poppins',sans-serif;background:var(--bg);margin:0;padding:15px;color:#2d3436}
- .container{max-width:800px;margin:0 auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.container{max-width:800px;margin:0 auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
   h1{text-align:center;color:var(--accent);margin:10px 0}
- .logo{display:block;width:100px;margin:0 auto 5px;border-radius:12px}
-  input{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-family:'Poppins'}
+.logo{display:block;width:100px;margin:0 auto 5px;border-radius:12px}
+  input,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-family:'Poppins'}
   label{font-weight:600;font-size:14px}
- .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
- .btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
- .btn{background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;font-size:15px}
- .btn-invoice{background:#00b894}
- .contract-preview{border:2px solid var(--accent);padding:20px;border-radius:10px;margin-top:20px;background:#fff;font-size:14px}
- .header{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:15px}
- .signature-line{border-bottom:1px solid #000;width:180px;display:inline-block;margin:0 5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;font-size:15px}
+.btn-invoice{background:#00b894}
+.contract-preview{border:2px solid var(--accent);padding:20px;border-radius:10px;margin-top:20px;background:#fff;font-size:14px}
+.header{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:15px}
+.signature-line{border-bottom:1px solid #000;width:180px;display:inline-block;margin:0 5px}
   @media print{.no-print{display:none}}
 </style>
 </head>
@@ -29,25 +29,37 @@
 <div class="container">
   <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" class="logo" alt="Twinz Logo">
   <h1>TWINZ CORPORATE SERVICES PTY LTD</h1>
-  <p style="text-align:center;color:#636e72">R50/month Business App - Contract + Invoice Generator</p>
+  <p style="text-align:center;color:#636e72">Contract + Monthly Invoice Generator - R50/month</p>
 
   <div class="no-print">
-    <h3>Client Details</h3>
+    <h3>Client Details - Fill Once</h3>
     <div class="grid">
       <div><label>Business Name</label><input type="text" id="bizName" placeholder="e.g. Pheladi's Car Wash"></div>
       <div><label>Owner Name</label><input type="text" id="ownerName" placeholder="e.g. Pheladi Mokoena"></div>
     </div>
-    <label>Business Type</label><input type="text" id="bizType" placeholder="Salon / Spaza / Garage / Tavern / Other">
+    <label>Business Type</label><input type="text" id="bizType" placeholder="Salon / Spaza / Garage / Tavern">
     <label>Physical Address</label><input type="text" id="bizAddress" placeholder="R37 Straightline, Burgersfort">
     <div class="grid">
       <div><label>Contact Number</label><input type="tel" id="bizPhone" placeholder="083..."></div>
       <div><label>WhatsApp Number</label><input type="tel" id="bizWA" placeholder="083..."></div>
     </div>
-    <label>Start Date / Agreement Date</label><input type="date" id="startDate">
+
+    <h3>For Invoice Only</h3>
+    <div class="grid">
+      <div>
+        <label>Invoice Month</label>
+        <select id="invMonth"></select>
+      </div>
+      <div>
+        <label>Invoice Year</label>
+        <input type="number" id="invYear" value="2026">
+      </div>
+    </div>
+    <label>Agreement Start Date</label><input type="date" id="startDate">
 
     <div class="btn-group">
-      <button class="btn" onclick="generateContractPDF()">📄 Generate Contract PDF</button>
-      <button class="btn btn-invoice" onclick="generateInvoicePDF()">🧾 Generate Invoice PDF</button>
+      <button class="btn" onclick="generateContractPDF()">📄 Generate Contract</button>
+      <button class="btn btn-invoice" onclick="generateInvoicePDF()">🧾 Generate Monthly Invoice</button>
     </div>
   </div>
 
@@ -56,84 +68,39 @@
       <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" style="width:70px;margin-bottom:5px">
       <h2>TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT</h2>
     </div>
-
-    <p><b>Service Provider:</b><br>
-    <b>TWINZ CORPORATE SERVICES PTY LTD</b><br>
-    📧 twinz.cooperate.services@gmail.com<br>
-    📞 068 254 7352 | 069 894 9596<br>
-    🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145
-    </p>
-
-    <p><b>Client Business Details:</b><br>
-    <b>Business Name:</b> <span id="pBizName">_________________</span><br>
-    <b>Owner Name:</b> <span id="pOwnerName">_________________</span><br>
-    <b>Business Type:</b> <span id="pBizType">_________________</span><br>
-    <b>Address:</b> <span id="pBizAddress">_________________</span><br>
-    <b>Contact:</b> <span id="pBizPhone">_________________</span> | <b>WhatsApp:</b> <span id="pBizWA">_________________</span>
-    </p>
-
-    <p><b>1. SERVICE</b><br>
-    TwinZ agrees to provide access to the "TwinZ Business App" for businesses on R37 Straightline.
-    Includes: Online bookings, Customer database, Digital invoices, WhatsApp notifications, Business listing on TwinZ directory.</p>
-
-    <p><b>2. MONTHLY FEE</b><br>
-    <b>Subscription:</b> R50.00 per month<br>
-    <b>Payment Method:</b> EFT to Standard Bank - Acc Name: Twinz Corporate Services Pty Ltd - Acc No: 10 26 459 443 4 - Branch: 006145<br>
-    <b>Reference:</b> <span id="pRef">Business Name</span><br>
-    <b>Due Date:</b> 1st of every month. First payment due on <span id="pStartDate">_____</span>
-    </p>
-
-    <p><b>3. AGREEMENT TERM</b><br>
-    This agreement starts on <span id="pStartDate2">_____</span> and continues month-to-month.
-    Either party may cancel with <b>30 days written notice</b> via WhatsApp to 068 254 7352.</p>
-
-    <p><b>4. TWINZ RESPONSIBILITIES</b><br>
-    - Free setup and training on the app<br>
-    - List business on TwinZ App for R37 Straightline customers<br>
-    - Support via WhatsApp: 068 254 7352 / 069 894 9596</p>
-
-    <p><b>5. SIGNATURES</b></p>
-    <p style="margin-top:40px">
-      <b>For TWINZ CORPORATE SERVICES:</b><br><br>
-      Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span>
-    </p>
-    <p style="margin-top:30px">
-      <b>For BUSINESS:</b><br><br>
-      Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span>
-    </p>
+    <!-- Preview content same as contract -->
+    <p><b>Service Provider:</b><br><b>TWINZ CORPORATE SERVICES PTY LTD</b><br>📧 twinz.cooperate.services@gmail.com<br>📞 068 254 7352 | 069 894 9596<br>🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145</p>
+    <p><b>Client:</b> <span id="pBizName">_____</span> | <b>Owner:</b> <span id="pOwnerName">_____</span></p>
+    <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
+    <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4. Due 1st of every month.</p>
+    <p><b>3. TERM:</b> Month-to-month. 30 days notice via WhatsApp 068 254 7352.</p>
   </div>
 </div>
 
 <script>
 const { jsPDF } = window.jspdf;
 
+// Load months into dropdown
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const monthSelect = document.getElementById('invMonth');
+months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</option>` });
+monthSelect.value = new Date().getMonth(); // default to current month
+
 function updatePreview(){
-  const bn = document.getElementById('bizName').value || '_________________';
-  document.getElementById('pBizName').innerText = bn;
-  document.getElementById('pOwnerName').innerText = document.getElementById('ownerName').value || '_________________';
-  document.getElementById('pBizType').innerText = document.getElementById('bizType').value || '_________________';
-  document.getElementById('pBizAddress').innerText = document.getElementById('bizAddress').value || '_________________';
-  document.getElementById('pBizPhone').innerText = document.getElementById('bizPhone').value || '_________________';
-  document.getElementById('pBizWA').innerText = document.getElementById('bizWA').value || '_________________';
-  document.getElementById('pStartDate').innerText = document.getElementById('startDate').value || '_____';
-  document.getElementById('pStartDate2').innerText = document.getElementById('startDate').value || '_____';
-  document.getElementById('pRef').innerText = bn;
+  document.getElementById('pBizName').innerText = document.getElementById('bizName').value || '_____';
+  document.getElementById('pOwnerName').innerText = document.getElementById('ownerName').value || '_____';
 }
 document.querySelectorAll('input').forEach(i=>i.addEventListener('input', updatePreview));
 
 function generateContractPDF(){
-  updatePreview();
-  const doc = new jsPDF();
-  let y = 15;
+  const doc = new jsPDF(); let y = 15;
   const bn = document.getElementById('bizName').value || 'Client';
 
   doc.setFontSize(16); doc.setFont(undefined, 'bold');
   doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align: "center"}); y+=10;
-
   doc.setFontSize(10); doc.setFont(undefined, 'normal');
   doc.text("TWINZ CORPORATE SERVICES PTY LTD", 10, y); y+=6;
-  doc.text("Email: twinz.cooperate.services@gmail.com", 10, y); y+=6;
-  doc.text("Cell: 068 254 7352 | 069 894 9596", 10, y); y+=6;
+  doc.text("Email: twinz.cooperate.services@gmail.com | Cell: 068 254 7352 | 069 894 9596", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145", 10, y); y+=10;
   doc.line(10, y, 200, y); y+=8;
 
@@ -142,11 +109,10 @@ function generateContractPDF(){
   doc.text("Owner Name: " + document.getElementById('ownerName').value, 10, y); y+=6;
   doc.text("Business Type: " + document.getElementById('bizType').value, 10, y); y+=6;
   doc.text("Address: " + document.getElementById('bizAddress').value, 10, y); y+=6;
-  doc.text("Contact: " + document.getElementById('bizPhone').value, 10, y); y+=6;
-  doc.text("WhatsApp: " + document.getElementById('bizWA').value, 10, y); y+=10;
+  doc.text("Contact: " + document.getElementById('bizPhone').value + " | WhatsApp: " + document.getElementById('bizWA').value, 10, y); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("1. SERVICE", 10, y); y+=6; doc.setFont(undefined, 'normal');
-  doc.text("TwinZ agrees to provide access to the TwinZ Business App for businesses on R37 Straightline.", 10, y, {maxWidth: 190}); y+=7;
+  doc.text("TwinZ provides access to the TwinZ Business App for R37 Straightline businesses.", 10, y, {maxWidth: 190}); y+=7;
   doc.text("Includes: Online bookings, Customer database, Digital invoices, WhatsApp notifications, Business listing.", 10, y, {maxWidth: 190}); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("2. MONTHLY FEE", 10, y); y+=6; doc.setFont(undefined, 'normal');
@@ -157,8 +123,8 @@ function generateContractPDF(){
   doc.text("Due Date: 1st of every month. First payment due on " + document.getElementById('startDate').value, 10, y); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("3. AGREEMENT TERM", 10, y); y+=6; doc.setFont(undefined, 'normal');
-  doc.text("This agreement starts on " + document.getElementById('startDate').value + " and continues month-to-month.", 10, y, {maxWidth: 190}); y+=7;
-  doc.text("Either party may cancel with 30 days written notice via WhatsApp to 068 254 7352.", 10, y, {maxWidth: 190}); y+=10;
+  doc.text("This agreement starts on " + document.getElementById('startDate').value + " and continues month-to-month.", 10, y); y+=7;
+  doc.text("Either party may cancel with 30 days written notice via WhatsApp to 068 254 7352.", 10, y); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("4. TWINZ RESPONSIBILITIES", 10, y); y+=6; doc.setFont(undefined, 'normal');
   doc.text("- Free setup and training on the app", 10, y); y+=6;
@@ -176,12 +142,13 @@ function generateContractPDF(){
 }
 
 function generateInvoicePDF(){
-  updatePreview();
-  const doc = new jsPDF();
-  let y = 15;
+  const doc = new jsPDF(); let y = 15;
   const bn = document.getElementById('bizName').value || 'Client';
-  const invoiceNo = 'TWINZ-' + new Date().getTime().toString().slice(-6);
-  const invDate = document.getElementById('startDate').value || new Date().toISOString().split('T')[0];
+  const monthIndex = document.getElementById('invMonth').value;
+  const year = document.getElementById('invYear').value;
+  const monthName = months[monthIndex];
+  const invoiceNo = 'TWINZ-' + year + '-' + (parseInt(monthIndex)+1).toString().padStart(2,'0') + '-' + bn.substring(0,3).toUpperCase();
+  const invDate = new Date().toISOString().split('T')[0];
 
   doc.setFontSize(18); doc.setFont(undefined, 'bold');
   doc.text("TAX INVOICE", 105, y, {align: "center"}); y+=10;
@@ -203,7 +170,7 @@ function generateInvoicePDF(){
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App - Monthly Subscription", 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " " + year, 12, y);
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -217,12 +184,12 @@ function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st of every month.", 10, y); y+=10;
+  doc.text("Reference: " + bn + " " + monthName, 10, y); y+=10;
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
-  doc.save(bn + "-TwinZ-Invoice.pdf");
-  alert("✅ Invoice PDF Downloaded for " + bn);
+  doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
+  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn);
 }
 </script>
 </body>
