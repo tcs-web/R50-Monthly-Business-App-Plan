@@ -15,14 +15,15 @@
   input,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-family:'Poppins'}
   label{font-weight:600;font-size:14px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .btn{background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;font-size:15px}
 .btn-invoice{background:#00b894}
 .btn-gray{background:#636e72}
+.btn-blue{background:#0984e3}
 .contract-preview{border:2px solid var(--accent);padding:20px;border-radius:10px;margin-top:20px;background:#fff;font-size:14px}
 .header{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:15px}
 .signature-line{border-bottom:1px solid #000;width:180px;display:inline-block;margin:0 5px}
-.signature-pad{border:2px dashed var(--accent);border-radius:8px;background:#fff;touch-action:none; width:100%; height:150px; display:block}
+.signature-pad{border:2px dashed var(--accent);border-radius:8px;background:#fff;touch-action:none; width:100%; height:150px}
 .sig-box{margin:15px 0;padding:15px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
   @media print{.no-print{display:none}}
 </style>
@@ -37,42 +38,44 @@
   <div class="no-print">
     <h3>Client Details - Fill Once</h3>
     <div class="grid">
-      <div><label>Business Name</label><input type="text" id="bizName" placeholder="e.g. Pheladi's Car Wash"></div>
-      <div><label>Owner Name</label><input type="text" id="ownerName" placeholder="e.g. Pheladi Mokoena"></div>
+      <div><label>Load Saved Client</label><select id="savedClients" onchange="loadClient()"><option value="">-- Select Client --</option></select></div>
+      <div><label>&nbsp;</label><button class="btn btn-blue" type="button" onclick="saveClient()">💾 Save Client</button></div>
+      <div><label>&nbsp;</label><button class="btn btn-gray" type="button" onclick="deleteClient()">🗑️ Delete</button></div>
     </div>
-    <label>Business Type</label><input type="text" id="bizType" placeholder="Salon / Spaza / Garage / Tavern">
-    <label>Physical Address</label><input type="text" id="bizAddress" placeholder="R37 Straightline, Burgersfort">
+
     <div class="grid">
-      <div><label>Contact Number</label><input type="tel" id="bizPhone" placeholder="083..."></div>
-      <div><label>WhatsApp Number</label><input type="tel" id="bizWA" placeholder="083..."></div>
+      <div><label>Business Name</label><input type="text" id="bizName"></div>
+      <div><label>Owner Name</label><input type="text" id="ownerName"></div>
+    </div>
+    <label>Business Type</label><input type="text" id="bizType">
+    <label>Business Physical Address</label><input type="text" id="bizAddress" placeholder="Shop address">
+    <label>Home Address</label><input type="text" id="homeAddress" placeholder="Owner home address">
+    <label>Client Email</label><input type="email" id="clientEmail" placeholder="client@email.com">
+    <div class="grid">
+      <div><label>Contact Number</label><input type="tel" id="bizPhone"></div>
+      <div><label>WhatsApp Number</label><input type="tel" id="bizWA"></div>
     </div>
 
     <h3>Digital Signatures</h3>
     <div class="sig-box">
       <label><b>TwinZ Representative Signature</b></label>
-      <input type="text" id="twinzRep" placeholder="TwinZ Rep Name">
-      <canvas id="sigTwinz" class="signature-pad"></canvas>
+      <input type="text" id="twinzRep">
+      <canvas id="sigTwinz" class="signature-pad" width="600" height="150"></canvas>
       <button class="btn btn-gray" type="button" onclick="clearSig('sigTwinz')">Clear</button>
     </div>
 
     <div class="sig-box">
       <label><b>Client Signature</b></label>
-      <input type="text" id="clientSign" placeholder="Client Name">
-      <canvas id="sigClient" class="signature-pad"></canvas>
+      <input type="text" id="clientSign">
+      <canvas id="sigClient" class="signature-pad" width="600" height="150"></canvas>
       <button class="btn btn-gray" type="button" onclick="clearSig('sigClient')">Clear</button>
     </div>
     <label>Agreement Date</label><input type="date" id="signDate">
 
     <h3>For Invoice Only</h3>
     <div class="grid">
-      <div>
-        <label>Invoice Month</label>
-        <select id="invMonth"></select>
-      </div>
-      <div>
-        <label>Invoice Year</label>
-        <input type="number" id="invYear" value="2026">
-      </div>
+      <div><label>Invoice Month</label><select id="invMonth"></select></div>
+      <div><label>Invoice Year</label><input type="number" id="invYear" value="2026"></div>
     </div>
     <label>Agreement Start Date</label><input type="date" id="startDate">
 
@@ -88,9 +91,12 @@
       <h2>TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT</h2>
     </div>
     <p><b>Service Provider:</b><br><b>TWINZ CORPORATE SERVICES PTY LTD</b><br>📧 twinz.cooperate.services@gmail.com<br>📞 068 254 7352 | 069 894 9596<br>🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145</p>
-    <p><b>Client:</b> <span id="pBizName">_____</span> | <b>Owner:</b> <span id="pOwnerName">_____</span></p>
-    <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
-    <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4. Due 1st of every month.</p>
+    <p><b>Client:</b> <span id="pBizName">_____</span></p>
+    <p><b>Owner:</b> <span id="pOwnerName">_____</span> | <b>Email:</b> <span id="pClientEmail">_____</span></p>
+    <p><b>Business Address:</b> <span id="pBizAddress">_____</span></p>
+    <p><b>Home Address:</b> <span id="pHomeAddress">_____</span></p>
+    <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline.</p>
+    <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4.</p>
     <p><b>3. TERM:</b> Month-to-month. 30 days notice via WhatsApp 068 254 7352.</p>
 
     <div style="margin-top:20px">
@@ -110,184 +116,123 @@
 
 <script>
 const { jsPDF } = window.jspdf;
-
-// Load months into dropdown
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const monthSelect = document.getElementById('invMonth');
-months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</option>` });
-monthSelect.value = new Date().getMonth();
-document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
-document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
 
-// FIXED SIGNATURE PAD - Waits for page to load first
-function setupCanvas(canvas){
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = canvas.offsetWidth * ratio;
-  canvas.height = canvas.offsetHeight * ratio;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(ratio, ratio);
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  return ctx;
-}
-
-function initSigPad(canvasId){
-  const canvas = document.getElementById(canvasId);
-  let ctx = setupCanvas(canvas);
-  let drawing = false;
-
-  function getPos(e){
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
-    const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
-    return {x,y}
-  }
-
-  function start(e){ e.preventDefault(); drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
-  function move(e){ if(!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
-  function stop(){ drawing = false; updatePreview(); }
-
-  canvas.addEventListener('mousedown', start);
-  canvas.addEventListener('mousemove', move);
-  canvas.addEventListener('mouseup', stop);
-  canvas.addEventListener('mouseleave', stop);
-  canvas.addEventListener('touchstart', start, {passive:false});
-  canvas.addEventListener('touchmove', move, {passive:false});
-  canvas.addEventListener('touchend', stop);
-}
-
-window.addEventListener('load', ()=>{
+window.onload = function(){
+  months.forEach((m,i)=>{ document.getElementById('invMonth').innerHTML += `<option value="${i}">${m}</option>` });
+  document.getElementById('invMonth').value = new Date().getMonth();
+  document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
   initSigPad('sigTwinz');
   initSigPad('sigClient');
-});
+  loadClientList();
+}
 
-function clearSig(id){
+function getClients(){ return JSON.parse(localStorage.getItem('twinzClients') || '[]'); }
+
+function saveClient(){
+  const bizName = document.getElementById('bizName').value;
+  if(!bizName){ alert("Please enter Business Name first"); return; }
+  const client = {
+    bizName, ownerName: document.getElementById('ownerName').value, bizType: document.getElementById('bizType').value,
+    bizAddress: document.getElementById('bizAddress').value, homeAddress: document.getElementById('homeAddress').value,
+    clientEmail: document.getElementById('clientEmail').value, bizPhone: document.getElementById('bizPhone').value,
+    bizWA: document.getElementById('bizWA').value, startDate: document.getElementById('startDate').value
+  };
+  let clients = getClients().filter(c => c.bizName!== bizName);
+  clients.push(client);
+  localStorage.setItem('twinzClients', JSON.stringify(clients));
+  loadClientList();
+  alert("✅ Client '" + bizName + "' Saved!");
+}
+
+function loadClientList(){
+  const select = document.getElementById('savedClients');
+  const clients = getClients();
+  select.innerHTML = '<option value="">-- Select Client --</option>';
+  clients.forEach(c => { select.innerHTML += `<option value="${c.bizName}">${c.bizName}</option>`; });
+}
+
+function loadClient(){
+  const name = document.getElementById('savedClients').value;
+  if(!name) return;
+  const c = getClients().find(x => x.bizName === name);
+  if(c){ for(let key in c){ if(document.getElementById(key)) document.getElementById(key).value = c[key]; } updatePreview(); }
+}
+
+function deleteClient(){
+  const name = document.getElementById('savedClients').value;
+  if(!name){ alert("Select a client first"); return; }
+  if(confirm("Delete " + name + "?")){
+    localStorage.setItem('twinzClients', JSON.stringify(getClients().filter(c => c.bizName!== name)));
+    loadClientList(); alert("🗑️ Deleted");
+  }
+}
+
+function initSigPad(id){
   const canvas = document.getElementById(id);
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.lineCap = 'round'; let drawing = false;
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches? e.touches[0] : e;
+    return {x: touch.clientX - rect.left, y: touch.clientY - rect.top}
+  }
+  canvas.onmousedown = canvas.ontouchstart = (e)=>{e.preventDefault(); drawing=true; let p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y);}
+  canvas.onmousemove = canvas.ontouchmove = (e)=>{if(!drawing)return; e.preventDefault(); let p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();}
+  canvas.onmouseup = canvas.ontouchend = canvas.onmouseleave = ()=>{drawing=false; updatePreview();}
+}
+
+function clearSig(id){
+  document.getElementById(id).getContext('2d').clearRect(0,0,600,150);
   updatePreview();
 }
 
 function updatePreview(){
-  document.getElementById('pBizName').innerText = document.getElementById('bizName').value || '_____';
-  document.getElementById('pOwnerName').innerText = document.getElementById('ownerName').value || '_____';
-  document.getElementById('pTwinzRep').innerText = document.getElementById('twinzRep').value || '_____';
-  document.getElementById('pClientSign').innerText = document.getElementById('clientSign').value || '_____';
-  let date = document.getElementById('signDate').value || new Date().toISOString().split('T')[0];
+  ['bizName','ownerName','clientEmail','bizAddress','homeAddress','twinzRep','clientSign'].forEach(id=>{
+    document.getElementById('p'+id.charAt(0).toUpperCase()+id.slice(1)).innerText = document.getElementById(id).value || '_____';
+  });
+  let date = document.getElementById('signDate').value;
   document.getElementById('pSignDate').innerText = date;
   document.getElementById('pSignDate2').innerText = date;
   document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL();
   document.getElementById('imgClientSig').src = document.getElementById('sigClient').toDataURL();
 }
-document.querySelectorAll('input,select').forEach(i=>i.addEventListener('input', updatePreview));
 
 function generateContractPDF(){
-  try{
-    const doc = new jsPDF(); let y = 15;
-    const bn = document.getElementById('bizName').value || 'Client';
-
-    doc.setFontSize(16); doc.setFont(undefined, 'bold');
-    doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align: "center"}); y+=10;
-    doc.setFontSize(10); doc.setFont(undefined, 'normal');
-    doc.text("TWINZ CORPORATE SERVICES PTY LTD", 10, y); y+=6;
-    doc.text("Email: twinz.cooperate.services@gmail.com | Cell: 068 254 7352 | 069 894 9596", 10, y); y+=6;
-    doc.text("Bank: Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145", 10, y); y+=10;
-    doc.line(10, y, 200, y); y+=8;
-
-    doc.setFont(undefined, 'bold'); doc.text("CLIENT BUSINESS DETAILS:", 10, y); y+=7; doc.setFont(undefined, 'normal');
-    doc.text("Business Name: " + document.getElementById('bizName').value, 10, y); y+=6;
-    doc.text("Owner Name: " + document.getElementById('ownerName').value, 10, y); y+=6;
-    doc.text("Business Type: " + document.getElementById('bizType').value, 10, y); y+=6;
-    doc.text("Address: " + document.getElementById('bizAddress').value, 10, y); y+=6;
-    doc.text("Contact: " + document.getElementById('bizPhone').value + " | WhatsApp: " + document.getElementById('bizWA').value, 10, y); y+=10;
-
-    doc.setFont(undefined, 'bold'); doc.text("1. SERVICE", 10, y); y+=6; doc.setFont(undefined, 'normal');
-    doc.text("TwinZ provides access to the TwinZ Business App for R37 Straightline businesses.", 10, y, {maxWidth: 190}); y+=7;
-    doc.text("Includes: Online bookings, Customer database, Digital invoices, WhatsApp notifications, Business listing.", 10, y, {maxWidth: 190}); y+=10;
-
-    doc.setFont(undefined, 'bold'); doc.text("2. MONTHLY FEE", 10, y); y+=6; doc.setFont(undefined, 'normal');
-    doc.text("Subscription: R50.00 per month", 10, y); y+=6;
-    doc.text("Payment: EFT to Standard Bank - Acc Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
-    doc.text("Acc No: 10 26 459 443 4 - Branch: 006145", 10, y); y+=6;
-    doc.text("Reference: " + bn, 10, y); y+=6;
-    doc.text("Due Date: 1st of every month. First payment due on " + document.getElementById('startDate').value, 10, y); y+=10;
-
-    doc.setFont(undefined, 'bold'); doc.text("3. AGREEMENT TERM", 10, y); y+=6; doc.setFont(undefined, 'normal');
-    doc.text("This agreement starts on " + document.getElementById('startDate').value + " and continues month-to-month.", 10, y); y+=7;
-    doc.text("Either party may cancel with 30 days written notice via WhatsApp to 068 254 7352.", 10, y); y+=10;
-
-    doc.setFont(undefined, 'bold'); doc.text("4. TWINZ RESPONSIBILITIES", 10, y); y+=6; doc.setFont(undefined, 'normal');
-    doc.text("- Free setup and training on the app", 10, y); y+=6;
-    doc.text("- List business on TwinZ App for R37 Straightline customers", 10, y); y+=6;
-    doc.text("- Support via WhatsApp: 068 254 7352 / 069 894 9596", 10, y); y+=15;
-
-    doc.setFont(undefined, 'bold'); doc.text("5. SIGNATURES", 10, y); y+=12;
-    doc.text("For TWINZ CORPORATE SERVICES:", 10, y); y+=7;
-    doc.text("Name: " + (document.getElementById('twinzRep').value || '_________________'), 10, y); y+=12;
-    doc.addImage(document.getElementById('sigTwinz').toDataURL('image/png'), 'PNG', 10, y, 60, 15);
-    doc.text("Date: " + document.getElementById('signDate').value, 100, y+8); y+=25;
-
-    doc.text("For BUSINESS:", 10, y); y+=7;
-    doc.text("Name: " + (document.getElementById('clientSign').value || '_________________'), 10, y); y+=12;
-    doc.addImage(document.getElementById('sigClient').toDataURL('image/png'), 'PNG', 10, y, 60, 15);
-    doc.text("Date: " + document.getElementById('signDate').value, 100, y+8);
-
-    doc.save(bn + "-TwinZ-Contract.pdf");
-    alert("✅ Contract PDF Downloaded for " + bn);
-  } catch(err){ alert("Error generating contract: " + err.message) }
+  const doc = new jsPDF(); const bn = document.getElementById('bizName').value || 'Client'; let y=15;
+  doc.setFontSize(14); doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align:"center"}); y+=10;
+  doc.setFontSize(10);
+  doc.text("Business Name: " + document.getElementById('bizName').value, 10, y); y+=7;
+  doc.text("Owner Name: " + document.getElementById('ownerName').value, 10, y); y+=7;
+  doc.text("Email: " + document.getElementById('clientEmail').value, 10, y); y+=7;
+  doc.text("Business Address: " + document.getElementById('bizAddress').value, 10, y); y+=7;
+  doc.text("Home Address: " + document.getElementById('homeAddress').value, 10, y); y+=10;
+  doc.text("Monthly Fee: R50.00", 10, y); y+=15;
+  doc.text("SIGNATURES", 10, y); y+=10;
+  doc.text("TwinZ Rep: " + document.getElementById('twinzRep').value, 10, y); y+=15;
+  doc.addImage(document.getElementById('sigTwinz').toDataURL('image/png'), 'PNG', 10, y, 60, 20); y+=25;
+  doc.text("Client: " + document.getElementById('clientSign').value, 10, y); y+=15;
+  doc.addImage(document.getElementById('sigClient').toDataURL('image/png'), 'PNG', 10, y, 60, 20);
+  doc.save(bn + "-TwinZ-Contract.pdf");
 }
 
 function generateInvoicePDF(){
-  try{
-    const doc = new jsPDF(); let y = 15;
-    const bn = document.getElementById('bizName').value || 'Client';
-    const monthIndex = document.getElementById('invMonth').value;
-    const year = document.getElementById('invYear').value;
-    const monthName = months[monthIndex];
-    const invoiceNo = 'TWINZ-' + year + '-' + (parseInt(monthIndex)+1).toString().padStart(2,'0') + '-' + bn.substring(0,3).toUpperCase();
-    const invDate = new Date().toISOString().split('T')[0];
+  const doc = new jsPDF();
+  const bn = document.getElementById('bizName').value || 'Client';
+  const monthName = months[document.getElementById('invMonth').value];
+  const year = document.getElementById('invYear').value;
+  let y=15;
 
-    doc.setFontSize(18); doc.setFont(undefined, 'bold');
-    doc.text("TAX INVOICE", 105, y, {align: "center"}); y+=10;
-    doc.setFontSize(10);
-    doc.text("Invoice No: " + invoiceNo, 150, y);
-    doc.text("Date: " + invDate, 150, y+6); y+=15;
-
-    doc.setFont(undefined, 'bold'); doc.text("FROM:", 10, y);
-    doc.text("BILL TO:", 110, y); y+=6; doc.setFont(undefined, 'normal');
-    doc.text("TWINZ CORPORATE SERVICES PTY LTD", 10, y);
-    doc.text(bn, 110, y); y+=6;
-    doc.text("Email: twinz.cooperate.services@gmail.com", 10, y);
-    doc.text("Attn: " + document.getElementById('ownerName').value, 110, y); y+=6;
-    doc.text("Cell: 068 254 7352 | 069 894 9596", 10, y);
-    doc.text(document.getElementById('bizAddress').value, 110, y); y+=12;
-
-    doc.setFillColor(139, 0, 0); doc.rect(10, y, 190, 8, 'F');
-    doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
-    doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
-    doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-    doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y); // FIXED
-    doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
-    doc.line(10, y, 200, y); y+=8;
-
-    doc.setFont(undefined, 'bold');
-    doc.text("SUBTOTAL:", 150, y); doc.text("R50.00", 175, y); y+=6;
-    doc.text("VAT 15%:", 150, y); doc.text("R0.00", 175, y); y+=6;
-    doc.setFontSize(12);
-    doc.text("TOTAL DUE:", 150, y); doc.text("R50.00", 175, y); y+=12;
-
-    doc.setFontSize(10);
-    doc.text("BANKING DETAILS:", 10, y); y+=6;
-    doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
-    doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-    doc.text("Reference: " + bn + " + monthName, 10, y); y+=10; // FIXED
-    doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10; // FIXED
-    doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
-
-    doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-    alert("✅ Invoice for " + monthName + " + year + " Downloaded for " + bn); // FIXED
-  } catch(err){ alert("Error generating invoice: " + err.message) }
+  doc.setFontSize(18); doc.text("TAX INVOICE", 105, y, {align:"center"}); y+=10;
+  doc.setFontSize(12);
+  doc.text("To: " + bn, 10, y); y+=7;
+  doc.text("Email: " + document.getElementById('clientEmail').value, 10, y); y+=7;
+  doc.text("Address: " + document.getElementById('bizAddress').value, 10, y); y+=10;
+  doc.text("Description: TwinZ App Subscription - " + monthName + " + year, 10, y); y+=10;
+  doc.text("Amount: R50.00", 10, y); y+=10;
+  doc.text("Bank: Standard Bank 10 26 459 443 4", 10, y);
+  doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
 }
 </script>
 </body>
