@@ -46,8 +46,14 @@
 
     <h3>For Invoice Only</h3>
     <div class="grid">
-      <div><label>Invoice Month</label><select id="invMonth"></select></div>
-      <div><label>Invoice Year</label><input type="number" id="invYear" value="2026"></div>
+      <div>
+        <label>Invoice Month</label>
+        <select id="invMonth"></select>
+      </div>
+      <div>
+        <label>Invoice Year</label>
+        <input type="number" id="invYear" value="2026">
+      </div>
     </div>
     <label>Agreement Start Date</label><input type="date" id="startDate">
 
@@ -56,38 +62,54 @@
       <button class="btn btn-invoice" onclick="generateInvoicePDF()">🧾 Generate Monthly Invoice</button>
     </div>
   </div>
+
+  <div class="contract-preview" id="contractPreview">
+    <div class="header">
+      <img src="https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png" style="width:70px;margin-bottom:5px">
+      <h2>TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT</h2>
+    </div>
+    <!-- Preview content same as contract -->
+    <p><b>Service Provider:</b><br><b>TWINZ CORPORATE SERVICES PTY LTD</b><br>📧 twinz.cooperate.services@gmail.com<br>📞 068 254 7352 | 069 894 9596<br>🏦 Standard Bank | Acc: 10 26 459 443 4 | Branch: 006145</p>
+    <p><b>Client:</b> <span id="pBizName">_____</span> | <b>Owner:</b> <span id="pOwnerName">_____</span></p>
+    <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
+    <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4. Due 1st of every month.</p>
+    <p><b>3. TERM:</b> Month-to-month. 30 days notice via WhatsApp 068 254 7352.</p>
+  </div>
 </div>
 
 <script>
 const { jsPDF } = window.jspdf;
-const logoUrl = "https://i.ibb.co/Jjz9KXdk/IMG-20260605-WA0002.png";
 
 // Load months into dropdown
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const monthSelect = document.getElementById('invMonth');
 months.forEach((m,i)=>{ monthSelect.innerHTML += `<option value="${i}">${m}</option>` });
-monthSelect.value = new Date().getMonth();
+monthSelect.value = new Date().getMonth(); // default to current month
 
-// Convert image URL to base64 for jsPDF
-async function getLogoBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
+function updatePreview(){
+  document.getElementById('pBizName').innerText = document.getElementById('bizName').value || '_____';
+  document.getElementById('pOwnerName').innerText = document.getElementById('ownerName').value || '_____';
+}
+document.querySelectorAll('input').forEach(i=>i.addEventListener('input', updatePreview));
+
+// Helper to load logo
+async function getLogo() {
+  const img = document.querySelector('.logo');
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return canvas.toDataURL('image/png');
 }
 
 async function generateContractPDF(){
-  const doc = new jsPDF();
+  const doc = new jsPDF(); let y = 15;
   const bn = document.getElementById('bizName').value || 'Client';
-  const logoBase64 = await getLogoBase64(logoUrl);
+  const logo = await getLogo();
 
-  // ADD LOGO
-  doc.addImage(logoBase64, 'PNG', 85, 10, 40, 20); // x, y, width, height
+  doc.addImage(logo, 'PNG', 85, 8, 40, 18); // logo on top
+  y = 32;
 
-  let y = 35;
   doc.setFontSize(16); doc.setFont(undefined, 'bold');
   doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align: "center"}); y+=10;
   doc.setFontSize(10); doc.setFont(undefined, 'normal');
@@ -104,7 +126,7 @@ async function generateContractPDF(){
   doc.text("Contact: " + document.getElementById('bizPhone').value + " | WhatsApp: " + document.getElementById('bizWA').value, 10, y); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("1. SERVICE", 10, y); y+=6; doc.setFont(undefined, 'normal');
-  doc.text("TwinZ provides access to the TwinZ Business App for businesses on R37 Straightline.", 10, y, {maxWidth: 190}); y+=7;
+  doc.text("TwinZ provides access to the TwinZ Business App for R37 Straightline businesses.", 10, y, {maxWidth: 190}); y+=7;
   doc.text("Includes: Online bookings, Customer database, Digital invoices, WhatsApp notifications, Business listing.", 10, y, {maxWidth: 190}); y+=10;
 
   doc.setFont(undefined, 'bold'); doc.text("2. MONTHLY FEE", 10, y); y+=6; doc.setFont(undefined, 'normal');
@@ -130,23 +152,22 @@ async function generateContractPDF(){
   doc.text("Name: ________________________ Signature: __________________ Date: __________", 10, y);
 
   doc.save(bn + "-TwinZ-Contract.pdf");
-  alert("✅ Contract PDF with Logo Downloaded for " + bn);
+  alert("✅ Contract PDF Downloaded for " + bn);
 }
 
 async function generateInvoicePDF(){
-  const doc = new jsPDF();
+  const doc = new jsPDF(); let y = 15;
   const bn = document.getElementById('bizName').value || 'Client';
   const monthIndex = document.getElementById('invMonth').value;
   const year = document.getElementById('invYear').value;
   const monthName = months[monthIndex];
   const invoiceNo = 'TWINZ-' + year + '-' + (parseInt(monthIndex)+1).toString().padStart(2,'0') + '-' + bn.substring(0,3).toUpperCase();
   const invDate = new Date().toISOString().split('T')[0];
-  const logoBase64 = await getLogoBase64(logoUrl);
+  const logo = await getLogo();
 
-  // ADD LOGO
-  doc.addImage(logoBase64, 'PNG', 85, 10, 40, 20);
+  doc.addImage(logo, 'PNG', 85, 8, 40, 18); // logo on top
+  y = 32;
 
-  let y = 35;
   doc.setFontSize(18); doc.setFont(undefined, 'bold');
   doc.text("TAX INVOICE", 105, y, {align: "center"}); y+=10;
   doc.setFontSize(10);
@@ -181,12 +202,12 @@ async function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
+  doc.text("Reference: " + bn + " " + monthName, 10, y); y+=10;
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-  alert("✅ Invoice with Logo for " + monthName + " + year + " Downloaded for " + bn);
+  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn);
 }
 </script>
 </body>
