@@ -74,6 +74,16 @@
     <p><b>1. SERVICE:</b> Access to TwinZ Business App for R37 Straightline. Includes bookings, invoices, WhatsApp notifications, listing.</p>
     <p><b>2. FEE:</b> R50.00/month. Pay to Standard Bank Acc: 10 26 459 443 4. Due 1st of every month.</p>
     <p><b>3. TERM:</b> Month-to-month. 30 days notice via WhatsApp 068 254 7352.</p>
+
+    <!-- ADDED SIGNATURES SECTION HERE -->
+    <div style="margin-top:20px">
+      <p><b>5. SIGNATURES</b></p>
+      <p><b>For TWINZ CORPORATE SERVICES:</b></p>
+      <p>Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span></p>
+      <br>
+      <p><b>For BUSINESS:</b></p>
+      <p>Name: <span class="signature-line"></span> Signature: <span class="signature-line"></span> Date: <span class="signature-line"></span></p>
+    </div>
   </div>
 </div>
 
@@ -170,7 +180,7 @@ function generateInvoicePDF(){
   doc.setTextColor(255,255,255); doc.setFont(undefined, 'bold');
   doc.text("DESCRIPTION", 12, y+6); doc.text("QTY", 120, y+6); doc.text("RATE", 150, y+6); doc.text("AMOUNT", 175, y+6); y+=10;
   doc.setTextColor(0,0,0); doc.setFont(undefined, 'normal');
-  doc.text("TwinZ Business App Subscription - " + monthName + " " + year, 12, y);
+  doc.text("TwinZ Business App Subscription - " + monthName + " + year, 12, y);
   doc.text("1", 122, y); doc.text("R50.00", 150, y); doc.text("R50.00", 175, y); y+=8;
   doc.line(10, y, 200, y); y+=8;
 
@@ -184,12 +194,12 @@ function generateInvoicePDF(){
   doc.text("BANKING DETAILS:", 10, y); y+=6;
   doc.text("Account Name: Twinz Corporate Services Pty Ltd", 10, y); y+=6;
   doc.text("Bank: Standard Bank | Account: 10 26 459 443 4 | Branch: 006145", 10, y); y+=6;
-  doc.text("Reference: " + bn + " " + monthName, 10, y); y+=10;
-  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " " + year, 10, y); y+=10;
+  doc.text("Reference: " + bn + " + monthName, 10, y); y+=10;
+  doc.text("Payment Terms: Due on receipt. Due Date: 1st " + monthName + " + year, 10, y); y+=10;
   doc.text("Thank you! For support WhatsApp 068 254 7352", 105, y, {align: "center"});
 
   doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
-  alert("✅ Invoice for " + monthName + " " + year + " Downloaded for " + bn);
+  alert("✅ Invoice for " + monthName + " + year + " Downloaded for " + bn);
 }
 </script>
 </body>
