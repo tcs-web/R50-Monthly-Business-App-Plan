@@ -44,7 +44,7 @@
     </div>
 
     <div class="grid">
-      <div><label>Business Name</label><input type="text" id="bizName"></div>
+      <div><label>Business Name</label><input type="text" id="bizName" required></div>
       <div><label>Owner Name</label><input type="text" id="ownerName"></div>
     </div>
     <label>Business Type</label><input type="text" id="bizType">
@@ -59,15 +59,15 @@
     <h3>Digital Signatures</h3>
     <div class="sig-box">
       <label><b>TwinZ Representative Signature</b></label>
-      <input type="text" id="twinzRep">
-      <canvas id="sigTwinz" class="signature-pad" width="600" height="150"></canvas>
+      <input type="text" id="twinzRep" placeholder="Full Name">
+      <canvas id="sigTwinz" class="signature-pad"></canvas>
       <button class="btn btn-gray" type="button" onclick="clearSig('sigTwinz')">Clear</button>
     </div>
 
     <div class="sig-box">
       <label><b>Client Signature</b></label>
-      <input type="text" id="clientSign">
-      <canvas id="sigClient" class="signature-pad" width="600" height="150"></canvas>
+      <input type="text" id="clientSign" placeholder="Full Name">
+      <canvas id="sigClient" class="signature-pad"></canvas>
       <button class="btn btn-gray" type="button" onclick="clearSig('sigClient')">Clear</button>
     </div>
     <label>Agreement Date</label><input type="date" id="signDate">
@@ -118,7 +118,7 @@
 const { jsPDF } = window.jspdf;
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-window.onload = function(){
+window.addEventListener('load', () => {
   months.forEach((m,i)=>{ document.getElementById('invMonth').innerHTML += `<option value="${i}">${m}</option>` });
   document.getElementById('invMonth').value = new Date().getMonth();
   document.getElementById('signDate').value = new Date().toISOString().split('T')[0];
@@ -126,44 +126,37 @@ window.onload = function(){
   initSigPad('sigTwinz');
   initSigPad('sigClient');
   loadClientList();
-}
+});
 
-function getClients(){ return JSON.parse(localStorage.getItem('twinzClients') || '[]'); }
+const getClients = () => JSON.parse(localStorage.getItem('twinzClients') || '[]');
 
 function saveClient(){
-  const bizName = document.getElementById('bizName').value;
-  if(!bizName){ alert("Please enter Business Name first"); return; }
-  const client = {
-    bizName, ownerName: document.getElementById('ownerName').value, bizType: document.getElementById('bizType').value,
-    bizAddress: document.getElementById('bizAddress').value, homeAddress: document.getElementById('homeAddress').value,
-    clientEmail: document.getElementById('clientEmail').value, bizPhone: document.getElementById('bizPhone').value,
-    bizWA: document.getElementById('bizWA').value, startDate: document.getElementById('startDate').value
-  };
-  let clients = getClients().filter(c => c.bizName!== bizName);
+  const bizName = document.getElementById('bizName').value.trim();
+  if(!bizName){ return alert("Business Name is required"); }
+  const client = Object.fromEntries(['bizName','ownerName','bizType','bizAddress','homeAddress','clientEmail','bizPhone','bizWA','startDate'].map(id => [id, document.getElementById(id).value]));
+  const clients = getClients().filter(c => c.bizName!== bizName);
   clients.push(client);
   localStorage.setItem('twinzClients', JSON.stringify(clients));
   loadClientList();
-  alert("✅ Client '" + bizName + "' Saved!");
+  alert(`✅ Client '${bizName}' Saved!`);
 }
 
 function loadClientList(){
   const select = document.getElementById('savedClients');
-  const clients = getClients();
-  select.innerHTML = '<option value="">-- Select Client --</option>';
-  clients.forEach(c => { select.innerHTML += `<option value="${c.bizName}">${c.bizName}</option>`; });
+  select.innerHTML = '<option value="">-- Select Client --</option>' + getClients().map(c => `<option value="${c.bizName}">${c.bizName}</option>`).join('');
 }
 
 function loadClient(){
   const name = document.getElementById('savedClients').value;
   if(!name) return;
   const c = getClients().find(x => x.bizName === name);
-  if(c){ for(let key in c){ if(document.getElementById(key)) document.getElementById(key).value = c[key]; } updatePreview(); }
+  if(c){ Object.keys(c).forEach(key => { if(document.getElementById(key)) document.getElementById(key).value = c[key]; }); updatePreview(); }
 }
 
 function deleteClient(){
   const name = document.getElementById('savedClients').value;
-  if(!name){ alert("Select a client first"); return; }
-  if(confirm("Delete " + name + "?")){
+  if(!name){ return alert("Select a client first"); }
+  if(confirm(`Delete ${name}?`)){
     localStorage.setItem('twinzClients', JSON.stringify(getClients().filter(c => c.bizName!== name)));
     loadClientList(); alert("🗑️ Deleted");
   }
@@ -172,27 +165,43 @@ function deleteClient(){
 function initSigPad(id){
   const canvas = document.getElementById(id);
   const ctx = canvas.getContext('2d');
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.lineCap = 'round'; let drawing = false;
-  function getPos(e){
+  const resize = () => {
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    ctx.scale(ratio, ratio);
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let drawing = false;
+  const getPos = e => {
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches? e.touches[0] : e;
     return {x: touch.clientX - rect.left, y: touch.clientY - rect.top}
-  }
-  canvas.onmousedown = canvas.ontouchstart = (e)=>{e.preventDefault(); drawing=true; let p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y);}
-  canvas.onmousemove = canvas.ontouchmove = (e)=>{if(!drawing)return; e.preventDefault(); let p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();}
-  canvas.onmouseup = canvas.ontouchend = canvas.onmouseleave = ()=>{drawing=false; updatePreview();}
+  };
+  const start = e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+  const move = e => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+  const end = () => { drawing = false; updatePreview(); };
+
+  ['mousedown','touchstart'].forEach(evt => canvas.addEventListener(evt, start));
+  ['mousemove','touchmove'].forEach(evt => canvas.addEventListener(evt, move));
+  ['mouseup','mouseleave','touchend'].forEach(evt => canvas.addEventListener(evt, end));
 }
 
 function clearSig(id){
-  document.getElementById(id).getContext('2d').clearRect(0,0,600,150);
+  const canvas = document.getElementById(id);
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
   updatePreview();
 }
 
 function updatePreview(){
   ['bizName','ownerName','clientEmail','bizAddress','homeAddress','twinzRep','clientSign'].forEach(id=>{
-    document.getElementById('p'+id.charAt(0).toUpperCase()+id.slice(1)).innerText = document.getElementById(id).value || '_____';
+    const el = document.getElementById('p' + id.charAt(0).toUpperCase() + id.slice(1));
+    if(el) el.innerText = document.getElementById(id).value || '_____';
   });
-  let date = document.getElementById('signDate').value;
+  const date = document.getElementById('signDate').value;
   document.getElementById('pSignDate').innerText = date;
   document.getElementById('pSignDate2').innerText = date;
   document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL();
@@ -200,39 +209,44 @@ function updatePreview(){
 }
 
 function generateContractPDF(){
-  const doc = new jsPDF(); const bn = document.getElementById('bizName').value || 'Client'; let y=15;
-  doc.setFontSize(14); doc.text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align:"center"}); y+=10;
+  const bn = document.getElementById('bizName').value.trim();
+  if(!bn){ return alert("Business Name is required"); }
+  const doc = new jsPDF();
+  let y = 15;
+  doc.setFontSize(14).text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align:"center"}); y += 10;
   doc.setFontSize(10);
-  doc.text("Business Name: " + document.getElementById('bizName').value, 10, y); y+=7;
-  doc.text("Owner Name: " + document.getElementById('ownerName').value, 10, y); y+=7;
-  doc.text("Email: " + document.getElementById('clientEmail').value, 10, y); y+=7;
-  doc.text("Business Address: " + document.getElementById('bizAddress').value, 10, y); y+=7;
-  doc.text("Home Address: " + document.getElementById('homeAddress').value, 10, y); y+=10;
-  doc.text("Monthly Fee: R50.00", 10, y); y+=15;
-  doc.text("SIGNATURES", 10, y); y+=10;
-  doc.text("TwinZ Rep: " + document.getElementById('twinzRep').value, 10, y); y+=15;
-  doc.addImage(document.getElementById('sigTwinz').toDataURL('image/png'), 'PNG', 10, y, 60, 20); y+=25;
-  doc.text("Client: " + document.getElementById('clientSign').value, 10, y); y+=15;
-  doc.addImage(document.getElementById('sigClient').toDataURL('image/png'), 'PNG', 10, y, 60, 20);
-  doc.save(bn + "-TwinZ-Contract.pdf");
+  ['bizName','ownerName','clientEmail','bizAddress','homeAddress'].forEach(label => {
+    doc.text(`${label.replace(/([A-Z])/g,' $1')}: ${document.getElementById(label).value}`, 10, y); y += 7;
+  });
+  y += 3; doc.text("Monthly Fee: R50.00", 10, y); y += 15;
+  doc.text("SIGNATURES", 10, y); y += 10;
+  doc.text(`TwinZ Rep: ${document.getElementById('twinzRep').value}`, 10, y); y += 15;
+  const twinzSig = document.getElementById('sigTwinz').toDataURL();
+  if(twinzSig.length > 2000) doc.addImage(twinzSig, 'PNG', 10, y, 60, 20);
+  y += 25;
+  doc.text(`Client: ${document.getElementById('clientSign').value}`, 10, y); y += 15;
+  const clientSig = document.getElementById('sigClient').toDataURL();
+  if(clientSig.length > 2000) doc.addImage(clientSig, 'PNG', 10, y, 60, 20);
+  doc.save(`${bn}-TwinZ-Contract.pdf`);
 }
 
 function generateInvoicePDF(){
-  const doc = new jsPDF();
-  const bn = document.getElementById('bizName').value || 'Client';
+  const bn = document.getElementById('bizName').value.trim();
+  if(!bn){ return alert("Business Name is required"); }
   const monthName = months[document.getElementById('invMonth').value];
   const year = document.getElementById('invYear').value;
-  let y=15;
-
-  doc.setFontSize(18); doc.text("TAX INVOICE", 105, y, {align:"center"}); y+=10;
+  const doc = new jsPDF();
+  let y = 15;
+  doc.setFontSize(18).text("TAX INVOICE", 105, y, {align:"center"}); y += 10;
   doc.setFontSize(12);
-  doc.text("To: " + bn, 10, y); y+=7;
-  doc.text("Email: " + document.getElementById('clientEmail').value, 10, y); y+=7;
-  doc.text("Address: " + document.getElementById('bizAddress').value, 10, y); y+=10;
-  doc.text("Description: TwinZ App Subscription - " + monthName + " + year, 10, y); y+=10;
-  doc.text("Amount: R50.00", 10, y); y+=10;
+  doc.text(`To: ${bn}`, 10, y); y += 7;
+  doc.text(`Email: ${document.getElementById('clientEmail').value}`, 10, y); y += 7;
+  doc.text(`Address: ${document.getElementById('bizAddress').value}`, 10, y); y += 10;
+  // FIXED LINE
+  doc.text(`Description: TwinZ App Subscription - ${monthName} ${year}`, 10, y); y += 10;
+  doc.text("Amount: R50.00", 10, y); y += 10;
   doc.text("Bank: Standard Bank 10 26 459 443 4", 10, y);
-  doc.save(bn + "-Invoice-" + monthName + "-" + year + ".pdf");
+  doc.save(`${bn}-Invoice-${monthName}-${year}.pdf`);
 }
 </script>
 </body>
