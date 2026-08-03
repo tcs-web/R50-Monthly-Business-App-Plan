@@ -167,8 +167,11 @@ function initSigPad(id){
   const ctx = canvas.getContext('2d');
   const resize = () => {
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    canvas.width = w * ratio;
+    canvas.height = h * ratio;
+    ctx.setTransform(1,0,0,1,0,0); // Reset transform before scaling
     ctx.scale(ratio, ratio);
     ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.lineCap = 'round';
   }
@@ -185,8 +188,8 @@ function initSigPad(id){
   const move = e => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
   const end = () => { drawing = false; updatePreview(); };
 
-  ['mousedown','touchstart'].forEach(evt => canvas.addEventListener(evt, start));
-  ['mousemove','touchmove'].forEach(evt => canvas.addEventListener(evt, move));
+  ['mousedown','touchstart'].forEach(evt => canvas.addEventListener(evt, start, {passive: false}));
+  ['mousemove','touchmove'].forEach(evt => canvas.addEventListener(evt, move, {passive: false}));
   ['mouseup','mouseleave','touchend'].forEach(evt => canvas.addEventListener(evt, end));
 }
 
@@ -204,8 +207,8 @@ function updatePreview(){
   const date = document.getElementById('signDate').value;
   document.getElementById('pSignDate').innerText = date;
   document.getElementById('pSignDate2').innerText = date;
-  document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL();
-  document.getElementById('imgClientSig').src = document.getElementById('sigClient').toDataURL();
+  document.getElementById('imgTwinzSig').src = document.getElementById('sigTwinz').toDataURL('image/png');
+  document.getElementById('imgClientSig').src = document.getElementById('sigClient').toDataURL('image/png');
 }
 
 function generateContractPDF(){
@@ -215,18 +218,23 @@ function generateContractPDF(){
   let y = 15;
   doc.setFontSize(14).text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y, {align:"center"}); y += 10;
   doc.setFontSize(10);
-  ['bizName','ownerName','clientEmail','bizAddress','homeAddress'].forEach(label => {
-    doc.text(`${label.replace(/([A-Z])/g,' $1')}: ${document.getElementById(label).value}`, 10, y); y += 7;
-  });
-  y += 3; doc.text("Monthly Fee: R50.00", 10, y); y += 15;
+  doc.text(`Business Name: ${document.getElementById('bizName').value}`, 10, y); y += 7;
+  doc.text(`Owner Name: ${document.getElementById('ownerName').value}`, 10, y); y += 7;
+  doc.text(`Email: ${document.getElementById('clientEmail').value}`, 10, y); y += 7;
+  doc.text(`Business Address: ${document.getElementById('bizAddress').value}`, 10, y); y += 7;
+  doc.text(`Home Address: ${document.getElementById('homeAddress').value}`, 10, y); y += 10;
+  doc.text("Monthly Fee: R50.00", 10, y); y += 15;
   doc.text("SIGNATURES", 10, y); y += 10;
   doc.text(`TwinZ Rep: ${document.getElementById('twinzRep').value}`, 10, y); y += 15;
-  const twinzSig = document.getElementById('sigTwinz').toDataURL();
-  if(twinzSig.length > 2000) doc.addImage(twinzSig, 'PNG', 10, y, 60, 20);
+
+  const twinzSig = document.getElementById('sigTwinz').toDataURL('image/png');
+  if(twinzSig.length > 10000) doc.addImage(twinzSig, 'PNG', 10, y, 60, 20);
   y += 25;
+
   doc.text(`Client: ${document.getElementById('clientSign').value}`, 10, y); y += 15;
-  const clientSig = document.getElementById('sigClient').toDataURL();
-  if(clientSig.length > 2000) doc.addImage(clientSig, 'PNG', 10, y, 60, 20);
+  const clientSig = document.getElementById('sigClient').toDataURL('image/png');
+  if(clientSig.length > 10000) doc.addImage(clientSig, 'PNG', 10, y, 60, 20);
+
   doc.save(`${bn}-TwinZ-Contract.pdf`);
 }
 
@@ -242,12 +250,11 @@ function generateInvoicePDF(){
   doc.text(`To: ${bn}`, 10, y); y += 7;
   doc.text(`Email: ${document.getElementById('clientEmail').value}`, 10, y); y += 7;
   doc.text(`Address: ${document.getElementById('bizAddress').value}`, 10, y); y += 10;
-  // FIXED LINE
   doc.text(`Description: TwinZ App Subscription - ${monthName} ${year}`, 10, y); y += 10;
   doc.text("Amount: R50.00", 10, y); y += 10;
   doc.text("Bank: Standard Bank 10 26 459 443 4", 10, y);
   doc.save(`${bn}-Invoice-${monthName}-${year}.pdf`);
 }
-</script>
+</script>  
 </body>
 </html>
