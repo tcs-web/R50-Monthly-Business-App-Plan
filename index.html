@@ -252,9 +252,10 @@ function generateContractPDF(){
   const doc = new jsPDF();
   let y = 15;
 
-  // HEADER WITH LOGO
-  if(logoBase64) doc.addImage(logoBase64, 'PNG', 15, y, 25, 25);
-  doc.setFontSize(14).setFont('helvetica','bold').text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 105, y+10, {align:"center"}); y += 30;
+  // FIX 1: SMALLER LOGO + BETTER ALIGNMENT
+  if(logoBase64) doc.addImage(logoBase64, 'PNG', 15, y, 18, 18); // was 25x25, now 18x18
+  doc.setFontSize(14).setFont('helvetica','bold').text("TWINZ BUSINESS APP - MONTHLY SERVICE AGREEMENT", 38, y+10); // moved title to right of logo
+  y += 28;
   
   doc.setFontSize(9).setFont('helvetica','normal');
   doc.text("TWINZ CORPORATE SERVICES PTY LTD", 15, y); y += 5;
@@ -299,22 +300,27 @@ function generateContractPDF(){
   doc.text("- List business on TwinZ App for R37 Straightline customers", 15, y); y += 5;
   doc.text("- Support via WhatsApp: 068 254 7352 / 069 894 9596", 15, y); y += 10;
 
-  // SECTION 5 SIGNATURES
+  // FIX 2: SIGNATURES WITH LINE AT BOTTOM
   doc.setFont('helvetica','bold').setFontSize(10).text("5. SIGNATURES", 15, y); y += 8;
   
   doc.setFont('helvetica','bold').text("For TWINZ CORPORATE SERVICES:", 15, y); y += 6;
   doc.setFont('helvetica','normal');
-  doc.text(`Name: ${document.getElementById('twinzRep').value} _________________`, 15, y);
-  doc.text(`Date: ${document.getElementById('signDate').value}`, 130, y); y += 15;
+  doc.text(`Name: ${document.getElementById('twinzRep').value}`, 15, y);
+  doc.text(`Date: ${document.getElementById('signDate').value}`, 130, y); y += 8;
+  
   const twinzSig = document.getElementById('sigTwinz').toDataURL('image/png');
-  if(twinzSig.length > 10000) doc.addImage(twinzSig, 'PNG', 15, y, 60, 20); y += 25;
+  if(twinzSig.length > 10000) doc.addImage(twinzSig, 'PNG', 15, y, 60, 20);
+  doc.line(15, y+22, 75, y+22); // LINE UNDER SIGNATURE
+  y += 28;
 
   doc.setFont('helvetica','bold').text("For BUSINESS:", 15, y); y += 6;
   doc.setFont('helvetica','normal');
-  doc.text(`Name: ${document.getElementById('clientSign').value} _________________`, 15, y);
-  doc.text(`Date: ${document.getElementById('signDate').value}`, 130, y); y += 15;
+  doc.text(`Name: ${document.getElementById('clientSign').value}`, 15, y);
+  doc.text(`Date: ${document.getElementById('signDate').value}`, 130, y); y += 8;
+  
   const clientSig = document.getElementById('sigClient').toDataURL('image/png');
   if(clientSig.length > 10000) doc.addImage(clientSig, 'PNG', 15, y, 60, 20);
+  doc.line(15, y+22, 75, y+22); // LINE UNDER SIGNATURE
 
   doc.save(`${bn}-TwinZ-Contract.pdf`);
 }
