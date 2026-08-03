@@ -126,6 +126,7 @@ window.addEventListener('load', () => {
   initSigPad('sigTwinz');
   initSigPad('sigClient');
   loadClientList();
+  document.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updatePreview));
 });
 
 const getClients = () => JSON.parse(localStorage.getItem('twinzClients') || '[]');
@@ -162,18 +163,31 @@ function deleteClient(){
   }
 }
 
+// FIX: Save and restore signature on resize
 function initSigPad(id){
   const canvas = document.getElementById(id);
   const ctx = canvas.getContext('2d');
+  let signatureData = null; // store signature here
+
+  const redraw = () => {
+    if(signatureData){
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0);
+      img.src = signatureData;
+    }
+  }
+
   const resize = () => {
+    signatureData = canvas.toDataURL(); // 1. Save current signature
     const ratio = window.devicePixelRatio || 1;
     const w = canvas.offsetWidth;
     const h = canvas.offsetHeight;
     canvas.width = w * ratio;
     canvas.height = h * ratio;
-    ctx.setTransform(1,0,0,1,0,0); // Reset transform before scaling
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(ratio, ratio);
     ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    redraw(); // 2. Restore signature
   }
   resize();
   window.addEventListener('resize', resize);
@@ -186,7 +200,7 @@ function initSigPad(id){
   };
   const start = e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
   const move = e => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
-  const end = () => { drawing = false; updatePreview(); };
+  const end = () => { drawing = false; signatureData = canvas.toDataURL(); updatePreview(); }; // Save on pen up
 
   ['mousedown','touchstart'].forEach(evt => canvas.addEventListener(evt, start, {passive: false}));
   ['mousemove','touchmove'].forEach(evt => canvas.addEventListener(evt, move, {passive: false}));
@@ -255,6 +269,6 @@ function generateInvoicePDF(){
   doc.text("Bank: Standard Bank 10 26 459 443 4", 10, y);
   doc.save(`${bn}-Invoice-${monthName}-${year}.pdf`);
 }
-</script>  
+</script>
 </body>
 </html>
